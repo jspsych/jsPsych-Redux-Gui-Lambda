@@ -1,37 +1,36 @@
 const AWS = require('aws-sdk'),
 	  https = require('https'),
-	  User_Table_Name = "jsPsych_Builder_Users";
+	  User_Table_Name = "jsPsych_Builder_Users",
+	  short_uuid = require('short-uuid');
 
-function postDataToOSF(
+
+function getUUID() {
+	var translator = short_uuid();
+	//var decimalTranslator = short("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+	let res = translator.new();
+	return res;
+}
+
+
+function uploadFileToOSF(
 	token,
 	data,
 	parentNodeId,
 	lambdaContext
 ) {
-
-	var body = JSON.stringify({
-			"data": {
-				"type": "nodes",
-				"attributes": {
-					"title": "Test POST",
-					"category": "data",
-					"public": true,
-					"description": data,
-				}
-			}
-		}),
-		postOptions = {
-			hostname: "api.osf.io",
-			path: `/v2/nodes/${parentNodeId}/children/`,
-			method: "POST",
+	let filename = `${getUUID()}-[${Date.now()}].csv`,
+		putOptions = {
+			hostname: "files.osf.io",
+			path: `/v1/resources/${parentNodeId}/providers/osfstorage/?kind=file&name=${filename}/`,
+			method: "PUT",
 			headers: {
 				"Content-Type": "application/vnd.api+json",
-				"Content-Length": Buffer.byteLength(body),
+				"Content-Length": Buffer.byteLength(data),
 				"Authorization": `Bearer ${token}`
 			}
 		};
 
-	const req = https.request(postOptions, (res) => {
+	const req = https.request(putOptions, (res) => {
 		lambdaContext.succeed(res.statusCode);
 	})
 
@@ -39,11 +38,9 @@ function postDataToOSF(
 		lambdaContext.fail(e);
 	});
 
-	req.write(body);
+	req.write(data);
 	req.end();
 }
-
-
 
 function connectDynamoDB() {
 	return new(AWS.DynamoDB.DocumentClient)({
@@ -85,7 +82,7 @@ exports.handler = (event, context, callback) => {
 				throw new Error("OSF Token is not set for this account.");
 			}
 
-			postDataToOSF(osfToken, experimentData, osfFolderId, context);
+			uploadFileToOSF(osfToken, experimentData, osfFolderId, context);
 		}
 	}).catch((err) => {
 		context.fail(err);
