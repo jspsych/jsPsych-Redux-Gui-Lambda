@@ -1,0 +1,22 @@
+{
+  "name": "jspsych-redux-gui-lambda",
+  "version": "1.0.0",
+  "description": "The AWS Lambda function code for jsPsych Builder",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jspsych/jsPsych-Redux-Gui-Lambda.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jspsych/jsPsych-Redux-Gui-Lambda/issues"
+  },
+  "homepage": "https://github.com/jspsych/jsPsych-Redux-Gui-Lambda#readme",
+  "dependencies": {
+    "short-uuid": "^3.0.0"
+  }
+}
