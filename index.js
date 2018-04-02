@@ -16,7 +16,7 @@ function uploadFileToOSF(
 	token,
 	data,
 	parentNodeId,
-	lambdaContext
+	callback
 ) {
 	let filename = `${getUUID()}-[${Date.now()}].csv`,
 		putOptions = {
@@ -31,11 +31,11 @@ function uploadFileToOSF(
 		};
 
 	const req = https.request(putOptions, (res) => {
-		lambdaContext.succeed(res.statusCode);
+		callback(null, res.statusCode);
 	})
 
 	req.on('error', (e) => {
-		lambdaContext.fail(e);
+		callback(e);
 	});
 
 	req.write(data);
@@ -63,6 +63,7 @@ function getUserData(id) {
 }
 
 exports.handler = (event, context, callback) => {
+	context.callbackWaitsForEmptyEventLoop = false;
 	let {
 		// experiment creator id (jspsych builder side)
 		userId,
@@ -82,10 +83,10 @@ exports.handler = (event, context, callback) => {
 				throw new Error("OSF Token is not set for this account.");
 			}
 
-			uploadFileToOSF(osfToken, experimentData, osfFolderId, context);
+			uploadFileToOSF(osfToken, experimentData, osfFolderId, callback);
 		}
 	}).catch((err) => {
-		context.fail(err);
+		callback(err);
 	})
 
 };
