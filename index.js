@@ -70,14 +70,15 @@ exports.handler = (event, context, callback) => {
 		// osf parent node id
 		osfFolderId,
 		// should be string
-		experimentData
+		experimentData,
+		experimentId
 	} = event;
 
 	getUserData(userId).then((data) => {
 		if (!data) {
 			throw `Invalid account id ${userId}`;
 		} else {
-			let osfToken = data.Item.fetch.osfToken;
+			let osfToken = data.Item.fetch.osfTokenMap[experimentId];
 
 			if (!osfToken) {
 				throw new Error("OSF Token is not set for this account.");
