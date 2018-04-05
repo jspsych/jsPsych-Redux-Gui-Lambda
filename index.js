@@ -67,8 +67,6 @@ exports.handler = (event, context, callback) => {
 	let {
 		// experiment creator id (jspsych builder side)
 		userId,
-		// osf parent node id
-		osfFolderId,
 		// should be string
 		experimentData,
 		experimentId
@@ -78,13 +76,23 @@ exports.handler = (event, context, callback) => {
 		if (!data) {
 			throw `Invalid account id ${userId}`;
 		} else {
-			let osfToken = data.Item.fetch.osfTokenMap[experimentId];
+			let cloudDeployInfo = data.Item.fetch.cloudDeployInfo[experimentId];
 
-			if (!osfToken) {
-				throw new Error("OSF Token is not set for this account.");
+			if (!cloudDeployInfo) {
+				throw new Error("This experiment is not ready.");
 			}
 
-			uploadFileToOSF(osfToken, experimentData, osfFolderId, callback);
+			let osfToken = cloudDeployInfo.osfToken,
+				osfNode = cloudDeployInfo.osfNode;
+
+			if (!osfToken) {
+				throw new Error("OSF Authorization Token is not set for this experiment.");
+			}
+			if (!osfNode) {
+				throw new Error("Data destination is not set for this experiment.");
+			}
+
+			uploadFileToOSF(osfToken, experimentData, osfNode, callback);
 		}
 	}).catch((err) => {
 		callback(err);
