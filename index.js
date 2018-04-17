@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk'),
 	  https = require('https'),
-	  User_Table_Name = "jsPsych_Builder_Users",
+	  Experiment_Table_Name = "jsPsych_Builder_Experiments",
 	  short_uuid = require('short-uuid');
 
 
@@ -52,12 +52,14 @@ function getItem(param) {
 	return connectDynamoDB().get(param).promise();
 }
 
-function getUserData(id) {
+
+function fetchExperimentById(id) {
 	let param = {
-		TableName: User_Table_Name,
+		TableName: Experiment_Table_Name,
 		Key: {
-			'userId': id
-		}
+			'experimentId': id
+		},
+		AttributesToGet: [ 'fetch' ] // fetch update local state needed info
 	};
 	return getItem(param);
 }
@@ -65,24 +67,22 @@ function getUserData(id) {
 exports.handler = (event, context, callback) => {
 	context.callbackWaitsForEmptyEventLoop = false;
 	let {
-		// experiment creator id (jspsych builder side)
-		userId,
 		// should be string
 		experimentData,
 		experimentId
 	} = event;
 
-	getUserData(userId).then((data) => {
+	fetchExperimentById(experimentId).then((data) => {
 		if (!data) {
 			throw `Invalid account id ${userId}`;
 		} else {
-			let cloudDeployInfo = data.Item.fetch.cloudDeployInfo[experimentId];
+			let cloudDeployInfo = data.Item.fetch.cloudDeployInfo;
 
 			if (!cloudDeployInfo) {
 				throw new Error("This experiment is not ready.");
 			}
 
-			let osfToken = cloudDeployInfo.osfToken,
+			let { osfToken } = cloudDeployInfo.osfAccess,
 				osfNode = cloudDeployInfo.osfNode;
 
 			if (!osfToken) {
