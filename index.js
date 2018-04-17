@@ -67,14 +67,13 @@ function fetchExperimentById(id) {
 exports.handler = (event, context, callback) => {
 	context.callbackWaitsForEmptyEventLoop = false;
 	let {
-		// should be string
 		experimentData,
 		experimentId
 	} = event;
 
 	fetchExperimentById(experimentId).then((data) => {
 		if (!data) {
-			throw `Invalid account id ${userId}`;
+			throw `Invalid experiment - ${experimentId}`;
 		} else {
 			let cloudDeployInfo = data.Item.fetch.cloudDeployInfo;
 
