@@ -77,11 +77,11 @@ exports.handler = (event, context, callback) => {
 		} else {
 			let cloudDeployInfo = data.Item.fetch.cloudDeployInfo;
 
-			if (!cloudDeployInfo) {
+			if (!cloudDeployInfo || !cloudDeployInfo.osfAccess) {
 				throw new Error("This experiment is not ready.");
 			}
 
-			let { osfToken } = cloudDeployInfo.osfAccess,
+			let osfToken = cloudDeployInfo.osfAccess.token,
 				osfNode = cloudDeployInfo.osfNode;
 
 			if (!osfToken) {
